@@ -3,13 +3,15 @@ import json
 import pytest
 
 from pyfcm import errors
-from pyfcm.baseapi import BaseAPI
+from pyfcm.baseapi import BaseAPI, FCMResult
 
 
 @pytest.fixture(scope="module")
 def base_api():
     api_key = os.getenv("FCM_TEST_API_KEY", None)
-    assert api_key, "Please set the environment variables for testing according to CONTRIBUTING.rst"
+    assert (
+        api_key
+    ), "Please set the environment variables for testing according to CONTRIBUTING.rst"
 
     return BaseAPI(api_key=api_key)
 
@@ -26,7 +28,7 @@ def test_request_headers(base_api):
     headers = base_api.request_headers()
 
     assert headers["Content-Type"] == "application/json"
-    assert headers["Authorization"] == "key=" + os.getenv("FCM_TEST_API_KEY")
+    assert headers["Authorization"] == "key=" + os.getenv("FCM_TEST_API_KEY", "")
 
 
 def test_registration_id_chunks(base_api):
@@ -39,14 +41,9 @@ def test_registration_id_chunks(base_api):
 
 
 def test_json_dumps(base_api):
-    json_string = base_api.json_dumps(
-        [
-            {"test": "Test"},
-            {"test2": "Test2"}
-        ]
-    )
+    json_string = base_api.json_dumps([{"test": "Test"}, {"test2": "Test2"}])
 
-    assert json_string == b"[{\"test\":\"Test\"},{\"test2\":\"Test2\"}]"
+    assert json_string == b'[{"test":"Test"},{"test2":"Test2"}]'
 
 
 def test_parse_payload(base_api):
@@ -75,7 +72,7 @@ def test_parse_payload(base_api):
         android_channel_id="Test",
         timeout=5,
         extra_notification_kwargs={},
-        extra_kwargs={}
+        extra_kwargs={},
     )
 
     data = json.loads(json_string.decode("utf-8"))
@@ -88,15 +85,19 @@ def test_parse_payload(base_api):
         "icon": "Test",
         "sound": "Test",
         "tag": "Test",
-        "title": "Test"
+        "title": "Test",
     }
 
-    assert 'time_to_live' in data
-    assert data['time_to_live'] == 0
+    assert "time_to_live" in data
+    assert data["time_to_live"] == 0
 
 
-def test_clean_registration_ids(base_api):
-    registrations_ids = base_api.clean_registration_ids(["Test"])
+@pytest.mark.asyncio
+async def test_clean_registration_ids(base_api: BaseAPI, respx_mock):
+    respx_mock.get("https://iid.googleapis.com/iid/info/Test?details=true") % dict(
+        json=[], status_code=404
+    )
+    registrations_ids = await base_api.clean_registration_ids(["Test"])
     assert len(registrations_ids) == 0
 
 
@@ -111,13 +112,13 @@ def test_unsubscribe_registration_ids_from_topic(base_api):
 
 
 def test_parse_responses(base_api):
-    response = base_api.parse_responses()
+    response = base_api.parse_responses([])
 
-    assert response == {
-        "multicast_ids": [],
-        "success": 0,
-        "failure": 0,
-        "canonical_ids": 0,
-        "results": [],
-        "topic_message_id": None
-    }
+    assert response == FCMResult(
+        multicast_ids=[],
+        success=0,
+        failure=0,
+        canonical_ids=0,
+        results=[],
+        topic_message_id=None,
+    )
