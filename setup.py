@@ -18,7 +18,7 @@ def read(fname):
 install_requires = [
     "httpx",
 ]
-tests_require = ["pytest"]
+tests_require = ["pytest", "respx"]
 
 # We can't get the values using `from pyfcm import __meta__`, because this would import
 # the other modules too and raise an exception (dependencies are not installed at this point yet).
