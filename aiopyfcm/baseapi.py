@@ -36,7 +36,7 @@ class FCMResult:
 
 class BaseAPI(object):
     """
-    Base class for the pyfcm API wrapper for FCM
+    Base class for the aiopyfcm API wrapper for FCM
 
     Attributes:
         api_key (str): Firebase API key
