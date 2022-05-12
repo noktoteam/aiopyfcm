@@ -1,5 +1,5 @@
 """
-pyfcm
+aiopyfcm
 ========
 
 Python client for FCM - Firebase Cloud Messaging (Android, iOS and Web)
@@ -20,10 +20,10 @@ install_requires = [
 ]
 tests_require = ["pytest", "respx"]
 
-# We can't get the values using `from pyfcm import __meta__`, because this would import
+# We can't get the values using `from aiopyfcm import __meta__`, because this would import
 # the other modules too and raise an exception (dependencies are not installed at this point yet).
 meta = {}
-exec(read("pyfcm/__meta__.py"), meta)
+exec(read("aiopyfcm/__meta__.py"), meta)
 
 if sys.argv[-1] == "publish":
     os.system("rm dist/*.gz dist/*.whl")
@@ -42,7 +42,7 @@ setup(
     author_email=meta["__email__"],
     description=meta["__summary__"],
     long_description=read("README.rst"),
-    packages=["pyfcm"],
+    packages=["aiopyfcm"],
     install_requires=install_requires,
     tests_require=tests_require,
     test_suite="tests.get_tests",
